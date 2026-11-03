@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: glassam-api
+    runtime: python
+    plan: starter
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: DATABASE_PATH
+        value: /var/data/glassam.db
+      - key: FRONTEND_ORIGINS
+        value: http://localhost:3000
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_API_KEY
+        sync: false
+    disk:
+      name: glassam-data
+      mountPath: /var/data
+      sizeGB: 1
