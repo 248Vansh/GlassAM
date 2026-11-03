@@ -52,7 +52,7 @@ Add a Groq key to `.env` to enable generated answers; without a key, the seeded 
 | Variable | Purpose | Default |
 |---|---|---|
 | `GROQ_API_KEY` | Groq API key; never put this in frontend code | unset (offline RAG) |
-| `GROQ_MODEL` | Groq chat-completions model | `llama-3.3-70b-versatile` |
+| `GROQ_MODEL` | Active Groq chat-completions model | `openai/gpt-oss-120b` |
 | `FRONTEND_ORIGINS` | Comma-separated CORS origins | `http://localhost:3000` |
 | `DATABASE_PATH` | SQLite file path | `./glassam.db` |
 

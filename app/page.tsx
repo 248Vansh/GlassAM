@@ -109,10 +109,11 @@ export default function Home() {
       if (!response.ok) throw new Error(`Optimizer request failed (${response.status}).`);
       setResult(await response.json() as OptimizationResult);
       setBackendOnline(true);
-    } catch {
+    } catch (error) {
       setResult(optimizeLocally(input));
       setBackendOnline(false);
-      setNotice("API unavailable — showing the seeded engineering demonstration. Estimates are not validated process instructions.");
+      const reason = error instanceof Error ? ` ${error.message}` : "";
+      setNotice(`API request failed; showing the seeded engineering demonstration.${reason} Estimates are not validated process instructions.`);
     } finally {
       setBusy(false);
     }
@@ -177,6 +178,8 @@ export default function Home() {
       }
       const data = await response.json() as { answer: string; references: AssistantReference[]; mode: string };
       setMessages((current) => [...current, { role: "assistant", text: data.answer, mode: data.mode, references: data.references }]);
+      setBackendOnline(true);
+      setGroqConfigured(data.mode.startsWith("Groq"));
     } catch (error) {
       if (apiResponded) {
         setMessages((current) => [...current, {

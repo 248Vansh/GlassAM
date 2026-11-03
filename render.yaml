@@ -15,7 +15,7 @@ services:
       - key: FRONTEND_ORIGINS
         value: http://localhost:3000
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-120b
       - key: GROQ_API_KEY
         sync: false
     disk:

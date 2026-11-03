@@ -108,13 +108,16 @@ class GlassAMApiTests(unittest.TestCase):
         }
 
         def handler(request):
+            self.assertEqual(request.headers["authorization"], "Bearer test-key")
             payload = json.loads(request.content)
+            self.assertEqual(payload["model"], "openai/gpt-oss-120b")
+            self.assertEqual(payload["reasoning_effort"], "low")
             self.assertIn("No source retrieved", payload["messages"][1]["content"])
             return httpx.Response(200, json=response_body)
 
         transport = httpx.MockTransport(handler)
         async_client = httpx.AsyncClient
-        with patch.dict(os.environ, {"GROQ_API_KEY": "test-key"}), patch(
+        with patch.dict(os.environ, {"GROQ_API_KEY": "test-key", "GROQ_MODEL": "openai/gpt-oss-120b"}), patch(
             "main.httpx.AsyncClient",
             side_effect=lambda **kwargs: async_client(transport=transport, **kwargs),
         ):
@@ -123,6 +126,21 @@ class GlassAMApiTests(unittest.TestCase):
         self.assertIn("Groq-hosted", response.json()["answer"])
         self.assertEqual(response.json()["mode"], "Groq · no relevant source retrieved")
         self.assertEqual(response.json()["references"], [])
+
+    def test_groq_rejection_exposes_safe_provider_diagnostic(self):
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(401, json={"error": {"message": "Invalid API Key"}})
+        )
+        async_client = httpx.AsyncClient
+        with patch.dict(os.environ, {"GROQ_API_KEY": "test-key"}), patch(
+            "main.httpx.AsyncClient",
+            side_effect=lambda **kwargs: async_client(transport=transport, **kwargs),
+        ):
+            response = self.client.post("/api/assistant", json={"question": "Explain GlassAM."})
+        self.assertEqual(response.status_code, 502)
+        self.assertIn("HTTP 401", response.json()["detail"])
+        self.assertIn("Invalid API Key", response.json()["detail"])
+        self.assertNotIn("test-key", response.json()["detail"])
 
     def test_uploaded_pdf_is_chunked_and_retrieved_with_page_citation(self):
         uploaded = self.client.post(

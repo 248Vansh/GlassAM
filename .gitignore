@@ -41,6 +41,7 @@ __pycache__/
 venv/
 env/
 *.py[cod]
+*.tsbuildinfo
 build/
 dist/
 coverage/
